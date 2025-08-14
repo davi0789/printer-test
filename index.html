@@ -1,8 +1,51 @@
-<html>
-  <head>
-    <title>Printer-Test</title>
-  </head>
-  <body>
-    <h1>Pagina de impresion</h1>
-  </body>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Imprimir Ticket desde BD</title>
+</head>
+<body>
+
+<h1>Imprimir Ticket desde BD</h1>
+
+<label for="ticketId">ID Ticket:</label>
+<input type="number" id="ticketId" value="1" min="1" />
+
+<button id="printBtn">Imprimir Ticket</button>
+
+<p id="resultado"></p>
+
+<script>
+document.getElementById('printBtn').addEventListener('click', async () => {
+  const ticketId = document.getElementById('ticketId').value;
+  const resultado = document.getElementById('resultado');
+
+  try {
+    // 1. Obtener datos del ticket desde BD
+    let resp = await fetch(`getTicketData.php?id=${ticketId}`);
+    let jsonData = await resp.json();
+
+    if (jsonData.status !== 'success') {
+      resultado.textContent = "Error al obtener datos: " + jsonData.message;
+      return;
+    }
+
+    // 2. Enviar datos para imprimir
+    let respPrint = await fetch('printTicket.php', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ dataPrint: jsonData.dataPrint })
+    });
+
+    let printResult = await respPrint.json();
+
+    resultado.textContent = printResult.message || "Respuesta de impresión recibida";
+
+  } catch (error) {
+    resultado.textContent = "Error: " + error.message;
+  }
+});
+</script>
+
+</body>
 </html>
